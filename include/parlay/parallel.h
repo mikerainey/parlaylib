@@ -52,6 +52,10 @@ inline void par_do(Lf left, Rf right, bool conservative = false);
 #elif defined(PARLAY_TBB)
 #include "internal/scheduler_plugins/tbb.h"         // IWYU pragma: keep, export
 
+// Mike Rainey's taskparts scheduler
+#elif defined(PARLAY_TASKPARTS)
+#include "internal/scheduler_plugins/taskparts.h"         // IWYU pragma: keep, export
+
 // No Parallelism
 #elif defined(PARLAY_SEQUENTIAL)
 #include "internal/scheduler_plugins/sequential.h"  // IWYU pragma: keep, export
