@@ -95,6 +95,10 @@ inline void blocked_for(size_t start, size_t end, size_t block_size, F&& f, bool
 #elif defined(PARLAY_TBB)
 #include "internal/scheduler_plugins/tbb.h"         // IWYU pragma: keep, export
 
+// Mike Rainey's taskparts scheduler
+#elif defined(PARLAY_TASKPARTS)
+#include "internal/scheduler_plugins/taskparts.h"         // IWYU pragma: keep, export
+
 // No Parallelism
 #elif defined(PARLAY_SEQUENTIAL)
 #include "internal/scheduler_plugins/sequential.h"  // IWYU pragma: keep, export
