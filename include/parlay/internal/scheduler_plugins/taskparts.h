@@ -14,7 +14,7 @@ bool taskparts_launched = false;
 inline size_t num_workers() { return taskparts::perworker::nb_workers(); }
 inline size_t worker_id() { return taskparts::perworker::my_id(); }
 
-using taskparts_scheduler = taskparts::minimal_scheduler<taskparts::bench_stats, taskparts::bench_logging, taskparts::bench_elastic>;
+using taskparts_scheduler = taskparts::bench_scheduler;
 
 template <typename Lf, typename Rf>
 inline void par_do(Lf left, Rf right, bool) {
@@ -73,12 +73,17 @@ inline void parallel_for(size_t start, size_t end, F f,
     parfor_(start, end, f, granularity, conservative);
 }
 
-template <typename Benchmark>
-auto benchmark_taskparts(const Benchmark& benchmark) {
+template <typename Benchmark,
+	  typename Benchmark_setup=decltype(taskparts::dflt_benchmark_setup),
+	  typename Benchmark_teardown=decltype(taskparts::dflt_benchmark_teardown)
+>
+  auto benchmark_taskparts(const Benchmark& benchmark,
+			   Benchmark_setup benchmark_setup=taskparts::dflt_benchmark_setup,
+			   Benchmark_teardown benchmark_teardown=taskparts::dflt_benchmark_teardown) {
   taskparts::benchmark_nativeforkjoin([&] (auto sched) {
     taskparts_launched = true;
     benchmark(sched);
-  });
+  }, benchmark_setup, benchmark_teardown);
 }
 
 }  // namespace parlay
