@@ -75,15 +75,22 @@ inline void parallel_for(size_t start, size_t end, F f,
 
 template <typename Benchmark,
 	  typename Benchmark_setup=decltype(taskparts::dflt_benchmark_setup),
-	  typename Benchmark_teardown=decltype(taskparts::dflt_benchmark_teardown)
+	  typename Benchmark_teardown=decltype(taskparts::dflt_benchmark_teardown),
+	  typename Benchmark_reset=decltype(taskparts::dflt_benchmark_reset)
 >
   auto benchmark_taskparts(const Benchmark& benchmark,
 			   Benchmark_setup benchmark_setup=taskparts::dflt_benchmark_setup,
-			   Benchmark_teardown benchmark_teardown=taskparts::dflt_benchmark_teardown) {
-  taskparts::benchmark_nativeforkjoin([&] (auto sched) {
+			   Benchmark_teardown benchmark_teardown=taskparts::dflt_benchmark_teardown,
+			   Benchmark_reset benchmark_reset=taskparts::dflt_benchmark_reset) {
+  auto benchmark2 = [&] (auto sched) {
     taskparts_launched = true;
     benchmark(sched);
-  }, benchmark_setup, benchmark_teardown);
+  };
+  auto benchmark_teardown2 = [&] (auto sched) {
+    benchmark_teardown(sched);
+    taskparts_launched = false;    
+  };
+  taskparts::benchmark_nativeforkjoin(benchmark2, benchmark_setup, benchmark_teardown2, benchmark_reset);
 }
 
 }  // namespace parlay
