@@ -26,7 +26,7 @@ namespace parlay {
 struct block_allocator {
 private:
 
-  static const size_t default_list_bytes = (1 << 22) - 64; // in bytes
+  static const size_t default_list_bytes = (1 << 18) - 64; // in bytes
   static const size_t pad_size = 256;
 
   struct block {
@@ -109,7 +109,7 @@ public:
     parallel_for(0, num_lists, [&] (size_t i) {
       block_p offset = reinterpret_cast<block_p>(start + i * list_length * block_size_);
       global_stack.push(initialize_list(offset));
-   });
+      },1,true);
   }
 
   void print_stats() {
@@ -190,10 +190,27 @@ public:
     size_t id = worker_id();
 
     if (local_lists[id].sz == 0)  {
-      local_lists[id].head = get_list();
-      local_lists[id].sz = list_length;
+      auto new_list = get_list();
+
+      // !! Critical problem !! If this task got stolen during get_list(),
+      // the worker id may have changed, so we can't assume we are looking
+      // at the same local list, so we have to check the (possibly different)
+      // local list of the (possibly changed) worker id
+      id = worker_id();
+
+      if (local_lists[id].sz == 0) {
+        local_lists[id].head = new_list;
+        local_lists[id].sz = list_length;
+      }
+      else {
+        // Looks like the task got stolen and the new thread already had a
+        // non-empty local list, so we can push the new one into the global
+        // poo for someone else to use in the future
+        global_stack.push(new_list);
+      }
     }
 
+    assert(id == worker_id());
     local_lists[id].sz--;
     block_p p = local_lists[id].head;
     local_lists[id].head = local_lists[id].head->next;

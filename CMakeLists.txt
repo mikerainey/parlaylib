@@ -2,11 +2,11 @@
 #                      Build system for ParlayLib
 # -------------------------------------------------------------------
 # Requirements:
-#   - CMake version 3.13+
+#   - CMake version 3.14+
 # -------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.13)
-project(PARLAY VERSION 1.0
+cmake_minimum_required(VERSION 3.14)
+project(PARLAY VERSION 2.0.3
         DESCRIPTION "A collection of parallel algorithms and other support for parallelism in C++"
         LANGUAGES CXX)
 
@@ -149,7 +149,7 @@ if (PARLAY_BENCHMARK)
   include(FetchContent)
   FetchContent_Declare(benchmark
     GIT_REPOSITORY  https://github.com/google/benchmark
-    GIT_TAG         main
+    GIT_TAG         v1.6.2
   )
   FetchContent_GetProperties(benchmark)
   if(NOT benchmark_POPULATED)
@@ -167,4 +167,34 @@ if (PARLAY_BENCHMARK)
 
 else()
   message(STATUS "benchmarks: Disabled (enable with -DPARLAY_BENCHMARK=On)")
+endif()
+
+# -------------------------------------------------------------------
+#                          Examples
+
+message(STATUS "------------------- Examples --------------------")
+
+# User option to build benchmarks
+option(PARLAY_EXAMPLES    "Build examples"  OFF)
+
+if (PARLAY_EXAMPLES)
+  message(STATUS "examples: Enabled")
+  add_subdirectory(examples)
+else()
+  message(STATUS "examples: Disabled (enable with -DPARLAY_EXAMPLES=On)")
+endif()
+
+option(PARLAY_EXAMPLE_DATA  "Download example data"  OFF)
+
+if (PARLAY_EXAMPLE_DATA)
+  message(STATUS "example data: On")
+  include(FetchContent)
+  FetchContent_Declare(
+    exampleData
+    URL http://www.cs.cmu.edu/~parlay/data.tar.gz
+    SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/data
+  )
+  FetchContent_MakeAvailable(exampleData)
+else()
+  message(STATUS "example data: Off (add -DPARLAY_EXAMPLE_DATA=On to download)")
 endif()
