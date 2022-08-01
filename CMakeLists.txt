@@ -174,6 +174,9 @@ endif()
 
 message(STATUS "------------------- Examples --------------------")
 
+# Copy examples source files to the installation folder
+install(DIRECTORY ${PARLAY_SOURCE_DIR}/examples DESTINATION ${CMAKE_INSTALL_DATAROOTDIR})
+
 # User option to build benchmarks
 option(PARLAY_EXAMPLES    "Build examples"  OFF)
 
