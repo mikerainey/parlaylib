@@ -2,28 +2,20 @@
 #define PARLAY_INTERNAL_SCHEDULER_PLUGINS_TASKPARTS_HPP_
 #if defined(PARLAY_TASKPARTS)
 
-#include <taskparts/benchmark.hpp>
+// clang++ -I../include -std=c++17 -DPARLAY_TASKPARTS -fno-stack-protector -fno-asynchronous-unwind-tables -fomit-frame-pointer -DTASKPARTS_X64 -DTASKPARTS_POSIX word_counts.cpp -o wc
+#include "/home/rainey/Work/website/blog/microtaskparts.cpp"
 #include <algorithm>
 
 namespace parlay {
 
 // IWYU pragma: private, include "../../parallel.h"
 
-bool taskparts_launched = false;
-
-inline size_t num_workers() { return taskparts::perworker::nb_workers(); }
-inline size_t worker_id() { return taskparts::perworker::my_id(); }
-
-using taskparts_scheduler = taskparts::bench_scheduler;
+inline size_t num_workers() { return taskparts::get_nb_workers(); }
+inline size_t worker_id() { return taskparts::get_my_id(); }
 
 template <typename Lf, typename Rf>
 inline void par_do(Lf left, Rf right, bool) {
-  if (taskparts_launched) {
-    taskparts::fork2join<Lf, Rf, taskparts_scheduler>(left, right);
-  } else {
-    left();
-    right();
-  }
+  taskparts::fork2join<Lf, Rf>(left, right);
 }
 
 template <typename F>
@@ -73,26 +65,6 @@ inline void parallel_for(size_t start, size_t end, F f,
     parfor_(start + done, end, f, granularity, conservative);
   } else
     parfor_(start, end, f, granularity, conservative);
-}
-
-template <typename Benchmark,
-	  typename Benchmark_setup=decltype(taskparts::dflt_benchmark_setup),
-	  typename Benchmark_teardown=decltype(taskparts::dflt_benchmark_teardown),
-	  typename Benchmark_reset=decltype(taskparts::dflt_benchmark_reset)
->
-  auto benchmark_taskparts(const Benchmark& benchmark,
-			   Benchmark_setup benchmark_setup=taskparts::dflt_benchmark_setup,
-			   Benchmark_teardown benchmark_teardown=taskparts::dflt_benchmark_teardown,
-			   Benchmark_reset benchmark_reset=taskparts::dflt_benchmark_reset) {
-  auto benchmark2 = [&] (auto sched) {
-    taskparts_launched = true;
-    benchmark(sched);
-  };
-  auto benchmark_teardown2 = [&] (auto sched) {
-    benchmark_teardown(sched);
-    taskparts_launched = false;    
-  };
-  taskparts::benchmark_nativeforkjoin(benchmark2, benchmark_setup, benchmark_teardown2, benchmark_reset);
 }
 
 }  // namespace parlay
