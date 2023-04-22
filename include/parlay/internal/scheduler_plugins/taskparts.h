@@ -4,7 +4,7 @@
 
 // clang++ -I../include -std=c++17 -DPARLAY_TASKPARTS -fno-stack-protector -fno-asynchronous-unwind-tables -fomit-frame-pointer -DTASKPARTS_X64 -DTASKPARTS_POSIX word_counts.cpp -o wc
 
-#include "/home/rainey/Work/successor/src/taskparts.cpp"
+#include <taskparts/taskparts.hpp>
 #include <algorithm>
 
 namespace parlay {
