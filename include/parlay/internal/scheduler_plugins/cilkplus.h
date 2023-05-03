@@ -22,9 +22,12 @@ inline void par_do(Lf&& left, Rf&& right, bool) {
   cilk_sync;
 }
 
+size_t override_granularity = 0;
+
 template <typename F>
 inline void parallel_for(size_t start, size_t end, F&& f, long granularity, bool) {
   static_assert(std::is_invocable_v< F&, size_t>);
+  granularity = override_granularity == 0 ? granularity : override_granularity;
   if (granularity == 0)
     cilk_for (size_t i=start; i<end; i++) f(i);
   else if ((end - start) <= static_cast<size_t>(granularity))

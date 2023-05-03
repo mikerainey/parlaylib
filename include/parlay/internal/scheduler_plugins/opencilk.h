@@ -29,17 +29,11 @@ inline void par_do(Lf&& left, Rf&& right, bool) {
 }
 
 size_t override_granularity = 0;
-  
+
 template <typename F>
-<<<<<<< HEAD
 inline void parallel_for(size_t start, size_t end, F&& f, long granularity, bool) {
   static_assert(std::is_invocable_v<F&, size_t>);
-=======
-inline void parallel_for(size_t start, size_t end, F f,
-                         long granularity,
-                         bool) {
   granularity = override_granularity == 0 ? granularity : override_granularity;
->>>>>>> 7e778a5 (fix)
   if (granularity == 0)
     cilk_for (size_t i=start; i<end; i++) f(i);
   else if ((end - start) <= static_cast<size_t>(granularity))
