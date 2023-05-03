@@ -59,12 +59,14 @@ void parfor_(size_t start, size_t end, F f, size_t granularity,
   }
 }
 
+size_t override_granularity = 0;
   
 template <typename F>
 inline void parallel_for(size_t start, size_t end, F f,
                          long granularity,
 			 bool conservative) {
   if (end <= start) return;
+  granularity = override_granularity == 0 ? granularity : override_granularity;
   if (granularity == 0) {
     size_t done = get_granularity(start, end, f);
     granularity = std::max(done, (end - start) / (128 * num_workers()));
