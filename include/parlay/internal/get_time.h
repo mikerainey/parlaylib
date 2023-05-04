@@ -1,9 +1,12 @@
 #pragma once
 
 #include <chrono>
+#include <cstdint>
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <vector>
+#include <sys/resource.h>
 
 namespace parlay {
   namespace internal {
@@ -15,6 +18,17 @@ private:
   time_t last;
   bool on;
   std::string name;
+  std::vector<double> exectimes;
+  using rusage_metrics = struct rusage_metrics_struct {
+    double utime;
+    double stime;
+    uint64_t nvcsw;
+    uint64_t nivcsw;
+    uint64_t maxrss;
+    uint64_t nsignals;
+  };
+  std::vector<rusage_metrics> rusages;
+  struct rusage last_rusage;
 
   auto get_time() {
     return std::chrono::system_clock::now();
@@ -41,10 +55,39 @@ public:
   : total_so_far(0.0), on(false), name(name) {
     if (start_) start();
   }
+  ~timer() {
+    std::string outfile = "";
+    if (const auto env_p = std::getenv("PARLAYLIB_TIMER_OUTFILE")) {
+      outfile = std::string(env_p);
+    }
+    if (outfile == "") {
+      return;
+    }
+    FILE* f = (outfile == "stdout") ? stdout : fopen(outfile.c_str(), "w");
+    fprintf(f, "[\n");
+    size_t n = exectimes.size();
+    for (size_t i = 0; i < n; i++) {
+      fprintf(f, "{exectime: %f,\n", exectimes[i]);
+      fprintf(f, "usertime: %f,\n", rusages[i].utime);
+      fprintf(f, "stime: %f,\n", rusages[i].stime);
+      fprintf(f, "nvcsw: %lu,\n", rusages[i].nvcsw);
+      fprintf(f, "nivcsw: %lu,\n", rusages[i].nivcsw);
+      fprintf(f, "maxrss: %lu,\n", rusages[i].maxrss);
+      fprintf(f, "nsignals: %lu}", rusages[i].nsignals);
+      if (i + 1 != n) {
+	fprintf(f, ",\n");
+      }
+    }
+    fprintf(f, "\n]\n");
+    if (f != stdout) {
+      fclose(f);
+    }
+  }
   
   void start () {
     on = true;
     last = get_time();
+    getrusage(RUSAGE_SELF, &last_rusage);
   }
 
   double stop () {
@@ -74,7 +117,23 @@ public:
   }
 
   void next(std::string str) {
-    if (on) report(next_time(), str);
+    auto t = next_time();
+    exectimes.push_back(t);
+    auto double_of_tv = [] (struct timeval tv) {
+      return ((double) tv.tv_sec) + ((double) tv.tv_usec)/1000000.;
+    };
+    auto previous_rusage = last_rusage;
+    getrusage(RUSAGE_SELF, &last_rusage);
+    rusage_metrics m = {
+      .utime = double_of_tv(last_rusage.ru_utime) - double_of_tv(previous_rusage.ru_utime),
+      .stime = double_of_tv(last_rusage.ru_stime) - double_of_tv(previous_rusage.ru_stime),
+      .nvcsw = (uint64_t)(last_rusage.ru_nvcsw - previous_rusage.ru_nvcsw),
+      .nivcsw = (uint64_t)(last_rusage.ru_nivcsw - previous_rusage.ru_nivcsw),
+      .maxrss = (uint64_t)(last_rusage.ru_maxrss),
+      .nsignals = (uint64_t)(last_rusage.ru_nsignals - previous_rusage.ru_nsignals)
+    };
+    rusages.push_back(m);
+    if (on) report(t, str);
   }
 
   void total() {
