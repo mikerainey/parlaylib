@@ -67,13 +67,13 @@ public:
     fprintf(f, "[\n");
     size_t n = exectimes.size();
     for (size_t i = 0; i < n; i++) {
-      fprintf(f, "{exectime: %f,\n", exectimes[i]);
-      fprintf(f, "usertime: %f,\n", rusages[i].utime);
-      fprintf(f, "systime: %f,\n", rusages[i].stime);
-      fprintf(f, "nvcsw: %lu,\n", rusages[i].nvcsw);
-      fprintf(f, "nivcsw: %lu,\n", rusages[i].nivcsw);
-      fprintf(f, "maxrss: %lu,\n", rusages[i].maxrss);
-      fprintf(f, "nsignals: %lu}", rusages[i].nsignals);
+      fprintf(f, "{\"exectime\": %f,\n", exectimes[i]);
+      fprintf(f, "\"usertime\": %f,\n", rusages[i].utime);
+      fprintf(f, "\"systime\": %f,\n", rusages[i].stime);
+      fprintf(f, "\"nvcsw\": %lu,\n", rusages[i].nvcsw);
+      fprintf(f, "\"nivcsw\": %lu,\n", rusages[i].nivcsw);
+      fprintf(f, "\"maxrss\": %lu,\n", rusages[i].maxrss);
+      fprintf(f, "\"nsignals\": %lu}", rusages[i].nsignals);
       if (i + 1 != n) {
 	fprintf(f, ",\n");
       }
