@@ -18,7 +18,7 @@ template <typename Lf, typename Rf>
 inline void par_do(Lf&& left, Rf&& right, bool) {
   static_assert(std::is_invocable_v<Lf&&>);
   static_assert(std::is_invocable_v<Rf&&>);
-  taskparts::fork2join<Lf, Rf>(left, right);
+  taskparts::fork2join<Lf, Rf>(std::forward<Lf>(left), std::forward<Rf>(right));
 }
 
 template <typename F>
