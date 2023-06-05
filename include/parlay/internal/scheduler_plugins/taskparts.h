@@ -39,17 +39,15 @@ size_t get_granularity(size_t start, size_t end, F f) {
   return done;
 }
 
-size_t override_granularity = 0;
-
 template <typename F>
-void parallel_for_rec(size_t start, size_t end, F&& f, long granularity) {
+void parallel_for_rec(size_t start, size_t end, F f, long granularity) {
   if ((end - start) <= granularity) {
     for (size_t i = start; i < end; i++) {
       f(i);
     }
   } else {
-    size_t n = end-start;
-    size_t mid = (start + (9*(n+1))/16);
+    size_t n = end - start;
+    size_t mid = (start + (9 * (n + 1)) / 16);
     par_do([&] { parallel_for_rec(start, mid, f, granularity); },
 	   [&] { parallel_for_rec(mid, end, f, granularity); }, false);
   }
@@ -59,14 +57,23 @@ template <typename F>
 inline void parallel_for(size_t start, size_t end, F&& f, long granularity, bool) {
   static_assert(std::is_invocable_v<F&, size_t>);
   if (end <= start) return;
-  granularity = override_granularity == 0 ? granularity : override_granularity;
-  if (granularity == 0) {
-    size_t done = get_granularity(start, end, f);
-    granularity = std::max(done, (end - start) / (128 * num_workers()));
-    parallel_for_rec(start + done, end, f, granularity);
-  } else {
-    parallel_for_rec(start, end, f, granularity);
+  if (start + 1 == end) {
+    f(start);
+    return;
   }
+  auto loop_body = [&](size_t i) { f(i); };
+  if ((end - start) <= static_cast<size_t>(granularity)) {
+    for (size_t i = start; i < end; i++) {
+      loop_body(i);
+    }
+    return;
+  }
+  if (granularity == 0) {
+    size_t done = get_granularity(start, end, loop_body);
+    granularity = std::max(done, (end - start) / static_cast<size_t>(128 * num_workers()));
+    start += done;
+  }
+  parallel_for_rec(start, end, loop_body, granularity);
 }
 
 }  // namespace parlay
