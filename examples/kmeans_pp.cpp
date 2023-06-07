@@ -34,7 +34,9 @@ int main(int argc, char* argv[]) {
       return parlay::tabulate(dims, [&] (long j) {
         auto r = gen[i*dims + j];
         return dis(r);});});
+    parlay::internal::timer t("Time");
     auto [result, rounds] = kmeans(pts, k, euclidean_squared, epsilon);
+    t.next("knn");
     std::cout << rounds << " rounds until diff < " << epsilon << std::endl;
   }
 }

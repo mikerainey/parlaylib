@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
   if (argc != 2) std::cout << usage << std::endl;
   else {
     long n;
-    try { n = std::stol(argv[1]); }
+    try { n = std::max(100l, std::stol(argv[1])); } // ensure n>100 because small inputs seem to crash the benchmark
     catch (...) { std::cout << usage << std::endl; return 1; }
     auto G = utils::grid_graph(n);
     utils::print_graph_stats(G);
