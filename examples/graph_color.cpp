@@ -22,7 +22,7 @@ bool check(const graph& G, const parlay::sequence<int> colors) {
 }
 
 int main(int argc, char* argv[]) {
-  auto usage = "Usage: graph_color <num_vertices>";
+  auto usage = "Usage: graph_color <n> || graph_color <filename>";
   if (argc != 2) std::cout << usage << std::endl;
   else {
     long n = 0;
