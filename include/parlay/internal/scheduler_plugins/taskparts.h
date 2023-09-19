@@ -26,7 +26,7 @@ size_t get_granularity(size_t start, size_t end, F f) {
   static_assert(std::is_invocable_v<F&, size_t>);
   size_t done = 0;
   size_t sz = 1;
-  int ticks = 0;
+  unsigned long long int ticks = 0;
   do {
     sz = std::min(sz, end - (start + done));
     auto tstart = std::chrono::high_resolution_clock::now();
@@ -57,10 +57,6 @@ template <typename F>
 inline void parallel_for(size_t start, size_t end, F&& f, long granularity, bool) {
   static_assert(std::is_invocable_v<F&, size_t>);
   if (end <= start) return;
-  if (start + 1 == end) {
-    f(start);
-    return;
-  }
   auto loop_body = [&](size_t i) { f(i); };
   if ((end - start) <= static_cast<size_t>(granularity)) {
     for (size_t i = start; i < end; i++) {
