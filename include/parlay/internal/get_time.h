@@ -10,6 +10,14 @@
 
 namespace parlay {
   namespace internal {
+
+static
+struct rusage global_rusage;
+
+void __attribute__((constructor)) __timer_global_init() {
+  getrusage(RUSAGE_SELF, &global_rusage);
+}
+    
 struct timer {
 
 private: 
@@ -33,6 +41,9 @@ private:
   auto get_time() {
     return std::chrono::system_clock::now();
   }
+  auto double_of_tv(struct timeval tv) {
+    return ((double) tv.tv_sec) + ((double) tv.tv_usec)/1000000.;
+  }
 
   void report(double time, std::string str) {
     std::ios::fmtflags cout_settings = std::cout.flags();
@@ -54,6 +65,38 @@ public:
   timer(std::string name = "Parlay time", bool start_ = true)
   : total_so_far(0.0), on(false), name(name) {
     if (start_) start();
+  }
+  void global_output() {
+    struct rusage last_rusage;
+    getrusage(RUSAGE_SELF, &last_rusage);
+    auto previous_rusage = global_rusage;
+    rusage_metrics m = {
+      .utime = double_of_tv(last_rusage.ru_utime) - double_of_tv(previous_rusage.ru_utime),
+      .stime = double_of_tv(last_rusage.ru_stime) - double_of_tv(previous_rusage.ru_stime),
+      .nvcsw = (uint64_t)(last_rusage.ru_nvcsw - previous_rusage.ru_nvcsw),
+      .nivcsw = (uint64_t)(last_rusage.ru_nivcsw - previous_rusage.ru_nivcsw),
+      .maxrss = (uint64_t)(last_rusage.ru_maxrss),
+      .nsignals = (uint64_t)(last_rusage.ru_nsignals - previous_rusage.ru_nsignals)
+    };
+    std::string outfile = "";
+    if (const auto env_p = std::getenv("PARLAYLIB_OVERALL_STATS_OUTFILE")) {
+      outfile = std::string(env_p);
+    }
+    if (outfile == "") {
+      return;
+    }
+    FILE* f = (outfile == "stdout") ? stdout : fopen(outfile.c_str(), "w");
+    fprintf(f, "[\n");
+    fprintf(f, "{\"usertime\": %f,\n", m.utime);
+    fprintf(f, "\"systime\": %f,\n", m.stime);
+    fprintf(f, "\"nvcsw\": %lu,\n", m.nvcsw);
+    fprintf(f, "\"nivcsw\": %lu,\n", m.nivcsw);
+    fprintf(f, "\"maxrss\": %lu,\n", m.maxrss);
+    fprintf(f, "\"nsignals\": %lu}", m.nsignals);
+    fprintf(f, "\n]\n");
+    if (f != stdout) {
+      fclose(f);
+    }
   }
   ~timer() {
     std::string outfile = "";
@@ -82,6 +125,7 @@ public:
     if (f != stdout) {
       fclose(f);
     }
+    global_output();    
   }
   
   void start () {
@@ -119,9 +163,6 @@ public:
   void next(std::string str) {
     auto t = next_time();
     exectimes.push_back(t);
-    auto double_of_tv = [] (struct timeval tv) {
-      return ((double) tv.tv_sec) + ((double) tv.tv_usec)/1000000.;
-    };
     auto previous_rusage = last_rusage;
     getrusage(RUSAGE_SELF, &last_rusage);
     rusage_metrics m = {
