@@ -13,9 +13,12 @@ namespace parlay {
 
 static
 struct rusage global_rusage;
+static
+std::chrono::time_point<std::chrono::steady_clock> global_exectime;
 
 void __attribute__((constructor)) __timer_global_init() {
   getrusage(RUSAGE_SELF, &global_rusage);
+  global_exectime = std::chrono::steady_clock::now();
 }
     
 struct timer {
@@ -68,6 +71,7 @@ public:
   }
   void global_output() {
     struct rusage last_rusage;
+    std::chrono::duration<double> elapsed = std::chrono::steady_clock::now() - global_exectime;
     getrusage(RUSAGE_SELF, &last_rusage);
     auto previous_rusage = global_rusage;
     rusage_metrics m = {
@@ -87,7 +91,8 @@ public:
     }
     FILE* f = (outfile == "stdout") ? stdout : fopen(outfile.c_str(), "w");
     fprintf(f, "[\n");
-    fprintf(f, "{\"usertime\": %f,\n", m.utime);
+    fprintf(f, "{\"exectime\": %f,\n", elapsed.count());
+    fprintf(f, "\"usertime\": %f,\n", m.utime);
     fprintf(f, "\"systime\": %f,\n", m.stime);
     fprintf(f, "\"nvcsw\": %lu,\n", m.nvcsw);
     fprintf(f, "\"nivcsw\": %lu,\n", m.nivcsw);
