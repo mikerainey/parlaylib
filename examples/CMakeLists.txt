@@ -1,3 +1,8 @@
+option(FEW_EXAMPLES "Build only a small subset of examples." OFF)
+
+if(FEW_EXAMPLES)
+set(EXAMPLES "primes" "BFS")
+else()
 set(EXAMPLES "primes" "BFS" "word_counts" "tokens" "filter" "linefit"
   "mcss" "quickhull" "pagerank" "spanning_tree" "maximal_matching"
   "kruskal" "mergesort" "samplesort" "kth_smallest"
@@ -12,6 +17,7 @@ set(EXAMPLES "primes" "BFS" "word_counts" "tokens" "filter" "linefit"
   "knuth_morris_pratt" "huffman_tree" "decision_tree_c45" "karatsuba" "suffix_tree"
   "2d_linear_program" "box_kdtree" "radix_tree" "ray_trace" "hash_map" "oct_tree"
   "3d_range" "rectangle_intersection")
+endif()
 
 function(add_example NAME)
   add_executable(${NAME} ${NAME}.cpp)
