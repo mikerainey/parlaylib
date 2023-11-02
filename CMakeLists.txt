@@ -143,6 +143,8 @@ elseif(PARLAY_TASKPARTSHDRONLY)
 	      -fno-stack-protector
 	      -fno-asynchronous-unwind-tables
       )
+      add_compile_options(-DTASKPARTS_HEADER_ONLY_LIBRARY)
+      target_link_libraries(parlay INTERFACE atomic)
       # TaskPaRTS build options
       option(TASKPARTS_NONELASTIC "Disable elastic scheduling." OFF)
       option(TASKPARTS_STATS "Enable collecting and reporting of stats on scheduling behavior." OFF)

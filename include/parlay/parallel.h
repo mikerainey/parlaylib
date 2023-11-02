@@ -132,7 +132,7 @@ static void par_do3_if(bool do_parallel, Lf&& left, Mf&& mid, Rf&& right) {
 #include "internal/scheduler_plugins/tbb.h"         // IWYU pragma: keep, export
 
 // Mike Rainey's taskparts scheduler
-#elif defined(PARLAY_TASKPARTS)
+#elif defined(PARLAY_TASKPARTS) || defined(PARLAY_TASKPARTSHDRONLY)
 #include "internal/scheduler_plugins/taskparts.h"         // IWYU pragma: keep, export
 
 // No Parallelism

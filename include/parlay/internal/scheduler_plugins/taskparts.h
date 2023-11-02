@@ -1,6 +1,6 @@
 #ifndef PARLAY_INTERNAL_SCHEDULER_PLUGINS_TASKPARTS_HPP_
 #define PARLAY_INTERNAL_SCHEDULER_PLUGINS_TASKPARTS_HPP_
-#if defined(PARLAY_TASKPARTS)
+#if defined(PARLAY_TASKPARTS) || defined(PARLAY_TASKPARTSHDRONLY)
 
 // clang++ -I../include -std=c++17 -DPARLAY_TASKPARTS -fno-stack-protector -fno-asynchronous-unwind-tables -fomit-frame-pointer -DTASKPARTS_X64 -DTASKPARTS_POSIX word_counts.cpp -o wc
 

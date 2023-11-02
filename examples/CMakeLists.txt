@@ -1,7 +1,7 @@
 option(FEW_EXAMPLES "Build only a small subset of examples." OFF)
 
 if(FEW_EXAMPLES)
-set(EXAMPLES "primes" "BFS")
+set(EXAMPLES "primes" "quickhull")
 else()
 set(EXAMPLES "primes" "BFS" "word_counts" "tokens" "filter" "linefit"
   "mcss" "quickhull" "pagerank" "spanning_tree" "maximal_matching"
