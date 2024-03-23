@@ -277,6 +277,7 @@ install(DIRECTORY ${PARLAY_SOURCE_DIR}/examples DESTINATION ${CMAKE_INSTALL_DATA
 
 # User option to build benchmarks
 option(PARLAY_EXAMPLES    "Build examples"  OFF)
+option(PARLAY_INSTALL_EXAMPLES    "Install examples"  OFF)
 
 if (PARLAY_EXAMPLES)
   message(STATUS "examples: Enabled")
