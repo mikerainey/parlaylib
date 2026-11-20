@@ -50,7 +50,7 @@ bigint add(const Bigint1& a, const Bigint2& b, bool extra_one=false) {
     double_digit carry = extra_one;
     result = bigint::uninitialized(na);
     for (int i=0; i < na; i++) {
-      double_digit s = a[i] + (b[i] + carry);
+      double_digit s = a[i] + (B(i) + carry);
       result[i] = s & mask;
       carry = s >> digit_len;
     }
