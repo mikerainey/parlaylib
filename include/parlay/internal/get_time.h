@@ -104,6 +104,9 @@ public:
     }
   }
   ~timer() {
+    // A timer that recorded nothing writes nothing. The library makes such
+    // timers inside its primitives, and each would otherwise rewrite the file.
+    if (exectimes.empty()) return;
     std::string outfile = "";
     if (const auto env_p = std::getenv("PARLAYLIB_TIMER_OUTFILE")) {
       outfile = std::string(env_p);
