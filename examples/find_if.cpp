@@ -4,6 +4,7 @@
 
 #include <parlay/primitives.h>
 #include <parlay/random.h>
+#include <parlay/internal/get_time.h>
 
 #include "find_if.h"
 
@@ -25,7 +26,13 @@ int main(int argc, char* argv[]) {
       auto r = gen[i];
       return dis(r); });
 
-    long result = ::find_if(vals, [] (long i) { return i == 277; });
+    parlay::internal::timer t("Time");
+    long result;
+    for (int i=0; i < 5; i++) {
+      // no value is negative, so every run searches the whole input
+      result = ::find_if(vals, [] (long i) { return i == -1; });
+      t.next("find_if");
+    }
 
     if (result == n) std::cout << "not found" << std::endl;
     else std::cout << "found at location " << result << std::endl;

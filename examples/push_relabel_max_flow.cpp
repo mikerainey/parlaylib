@@ -43,10 +43,10 @@ int main(int argc, char* argv[]) {
     });
 
     int result;
-    //parlay::internal::timer t("Time");
+    parlay::internal::timer t("Time");
     for (int i=0; i < 2; i++) {
       result = maximum_flow(GW, n, n+1);
-      //t.next("push_relabel_max_flow");
+      t.next("push_relabel_max_flow");
     }
 
     std::cout << "max flow: " << result << std::endl;
